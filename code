@@ -1,0 +1,24 @@
+# Create an empty list
+numbers = []
+
+# Add elements to the list
+numbers.append(5)
+numbers.append(10)
+numbers.append(15)
+
+# Print the list
+print("List:", numbers)
+
+# Access elements
+print("First element:", numbers[0])
+print("Second element:", numbers[1])
+
+# Remove an element
+numbers.remove(10)
+print("After removing 10:", numbers)
+
+# Check if list is empty
+if not numbers:
+    print("List is empty")
+else:
+    print("List is not empty")

@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Segoe UI', sans-serif;
+}
+
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:10px;
+  overflow:hidden;
+
+  background:
+    linear-gradient(rgba(10,10,25,.35),rgba(10,10,25,.55)),
+    url("assets/bg.png"),
+    linear-gradient(135deg,#101020,#1b1430,#151226);
+
+  background-size:cover, cover, 100% 100%;
+  background-position:center, left center, center;
+  background-repeat:no-repeat;
+  position:relative;
+}
+
+body::before{
+  content:"";
+  position:absolute;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  left:-120px;
+  top:60%;
+  background:radial-gradient(circle at 32% 30%,#c56cff,#6f00ff 45%,#2400c9 80%);
+  opacity:.35;
+  box-shadow:0 30px 70px rgba(85,0,255,.45);
+  animation:floatOrb 8s ease-in-out infinite alternate;
+}
+
+body::after{
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  right:10%;
+  top:18%;
+  background:radial-gradient(circle at 35% 30%,#c56cff,#7d00ff 45%,#2500c9 80%);
+  opacity:.9;
+  box-shadow:0 30px 70px rgba(85,0,255,.45);
+  animation:floatOrb2 9s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb{
+  from{transform:translateY(0);}
+  to{transform:translateY(35px);}
+}
+
+@keyframes floatOrb2{
+  from{transform:translateY(20px);}
+  to{transform:translateY(-25px);}
+}
+
+.container{
+  position:relative;
+  z-index:2;
+  width:430px;
+  max-width:95%;
+  background:rgba(180,185,205,.32);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+  padding:48px 34px 36px;
+  border-radius:44px;
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:
+    0 35px 90px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    0 0 65px rgba(170,80,255,.25);
+  text-align:center;
+  color:white;
+  animation:fadeIn 0.7s ease-out;
+  overflow:hidden;
+}
+
+.container::before{
+  content:"";
+  position:absolute;
+  width:170px;
+  height:170px;
+  right:-45px;
+  bottom:-45px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 25%,#d77dff,#9c2bff 48%,#6510d7 80%);
+  opacity:.95;
+  z-index:-1;
+}
+
+.container::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:44px;
+  padding:1px;
+  background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.08),rgba(80,200,255,.65));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.emoji{
+  width:62px;
+  height:62px;
+  margin:0 auto 18px;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:30px;
+  background:linear-gradient(135deg,#e628b7,#2378ff);
+  box-shadow:
+    0 0 34px rgba(207,55,255,.72),
+    0 0 25px rgba(207,55,255,.8),
+    0 0 45px rgba(80,120,255,.6);
+  animation:bounce 2s infinite;
+}
+
+@keyframes bounce{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+}
+
+h2{
+  font-size:30px;
+  font-weight:300;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  color:white;
+}
+
+.username{
+  font-size:18px;
+  font-weight:700;
+  color:#fff;
+  margin-bottom:16px;
+}
+
+p{
+  font-size:14px;
+  color:#f1f1f1;
+  margin-bottom:24px;
+  line-height:1.5;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:16px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:800;
+  color:white;
+  margin-top:10px;
+  background:linear-gradient(45deg,#15b7ff,#7b20ef);
+  transition:.25s ease;
+  box-shadow:0 12px 28px rgba(35,115,255,.28);
+}
+
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 26px rgba(90,80,255,.65);
+}
+
+button:active{
+  transform:scale(0.98);
+}
+
+.logout{
+  background:linear-gradient(45deg,#14b8ff,#7420e8);
+}
+
+@media(max-width:600px){
+  .container{
+    width:95%;
+    padding:38px 24px 32px;
+    border-radius:34px;
+  }
+
+  body::before{
+    width:230px;
+    height:230px;
+    left:-70px;
+  }
+
+  body::after{
+    width:210px;
+    height:210px;
+    right:-70px;
+  }
+
+  h2{
+    font-size:25px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="emoji">🎉</div>
+
+  <h2>Welcome Back!</h2>
+
+  <div class="username" id="userName">User</div>
+
+  <p id="sessionTime">Session: 0 min 0 sec</p>
+
+  <p>Your login was successful 🚀<br>Explore your dashboard now.</p>
+
+  <button class="logout" onclick="logout()">Logout 🚪</button>
+
+  <button onclick="openAdmin()">Show Admin History 📊</button>
+
+</div>
+
+<script>
+
+let savedName = localStorage.getItem("name") || "User"; 
+document.getElementById("userName").innerText = "Hello, " + savedName + " 👋";
+
+if(!localStorage.getItem("loginStartTime")){
+  localStorage.setItem("loginStartTime", Date.now());
+}
+
+function updateSession(){
+  let start = localStorage.getItem("loginStartTime");
+  if(!start) return;
+
+  let diff = Math.floor((Date.now() - start) / 1000);
+  let minutes = Math.floor(diff / 60);
+  let seconds = diff % 60;
+
+  document.getElementById("sessionTime").innerText =
+    "Session: " + minutes + " min " + seconds + " sec";
+}
+
+setInterval(updateSession,1000);
+updateSession();
+function saveDutyData(type){
+
+  let email = localStorage.getItem("email");
+  let name = localStorage.getItem("name");
+
+  if(!email) return;
+
+  let logs =
+  JSON.parse(localStorage.getItem("dutyTimeLogs")) || [];
+
+  let now = new Date();
+
+  let today =
+  now.toLocaleDateString("en-GB");
+
+  let currentTime = now.getTime();
+
+  // HAR LOGIN = NEW ROW
+  if(type === "login"){
+
+    let userLog = {
+      name:name,
+      email:email,
+      date:today,
+      insideMinutes:0,
+      outsideMinutes:0,
+      sessions:1,
+      lastLogin:currentTime,
+      lastLogout:null,
+      insideTime:"0h 0m",
+      outsideTime:"0h 0m",
+      remaining:"9h 0m"
+    };
+
+    logs.push(userLog);
+
+  }
+
+  // LOGOUT
+  if(type === "logout"){
+
+    let userLog = logs[logs.length - 1];
+
+    if(userLog && userLog.lastLogin){
+
+      let inside =
+      Math.floor(
+      (currentTime - userLog.lastLogin)
+      / 60000);
+
+      userLog.insideMinutes = inside;
+
+      let insideH =
+      Math.floor(inside / 60);
+
+      let insideM =
+      inside % 60;
+
+      userLog.insideTime =
+      `${insideH}h ${insideM}m`;
+
+      let remain =
+      540 - inside;
+
+      if(remain < 0) remain = 0;
+
+      let remH = Math.floor(remain / 60);
+      let remM = remain % 60;
+
+      userLog.remaining =
+      `${remH}h ${remM}m`;
+
+      userLog.lastLogout = currentTime;
+
+    }
+
+  }
+
+  localStorage.setItem(
+    "dutyTimeLogs",
+    JSON.stringify(logs)
+  );
+
+}
+function logout(){
+
+  let start = localStorage.getItem("loginStartTime");
+
+  if(start){
+    let end = Date.now();
+    let duration = Math.floor((end - start)/1000);
+
+    let minutes = Math.floor(duration/60);
+    let seconds = duration % 60;
+
+    let durationText = minutes + " min " + seconds + " sec";
+
+    let logs = JSON.parse(localStorage.getItem("loginLogs")) || [];
+
+    if(logs.length > 0){
+      logs[logs.length - 1].duration = durationText;
+      localStorage.setItem("loginLogs", JSON.stringify(logs));
+    }
+  }
+
+  /* 🔥 NEW: OUT TIME SAVE (ONLY ADDITION) */
+  let attendance = JSON.parse(localStorage.getItem("attendanceLogs")) || [];
+
+  if(attendance.length > 0){
+    let last = attendance[attendance.length - 1];
+
+    if(last.email === localStorage.getItem("email")){
+      last.out = new Date().toLocaleTimeString();
+    }
+
+    localStorage.setItem("attendanceLogs", JSON.stringify(attendance));
+  }
+saveDutyData("logout");
+  window.location.href="auth.html";
+}
+
+/* 🔥 SAME ADMIN SECURITY */
+function openAdmin(){
+
+  let adminEmail = prompt("Enter Admin Email");
+  let adminPass = prompt("Enter Admin Password");
+
+  if(
+    adminEmail === "himanshukundra507@gmail.com" &&
+    adminPass === "@kundra21"
+  ){
+    sessionStorage.setItem("adminAccess","true");
+    window.location.href="admin.html";
+  }else{
+    alert("Access Denied ❌");
+  }
+}
+
+</script>
+
+</body>
+</html>

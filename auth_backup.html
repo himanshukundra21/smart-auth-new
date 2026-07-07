@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Auth</title>
+
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Segoe UI', sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:10px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 15% 15%,rgba(255,106,0,.55),transparent 30%),
+    radial-gradient(circle at 85% 20%,rgba(37,117,252,.55),transparent 32%),
+    radial-gradient(circle at 50% 90%,rgba(0,201,167,.45),transparent 35%),
+    linear-gradient(-45deg,#ff6a00,#ee0978f2,#2574fc,#00c9a7);
+  background-size:400% 400%;
+  animation:bg 8s ease infinite;
+}
+
+body::before{
+  content:"";
+  position:absolute;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.14);
+  filter:blur(8px);
+  top:-80px;
+  left:-80px;
+}
+
+body::after{
+  content:"";
+  position:absolute;
+  width:320px;
+  height:320px;
+  border-radius:50%;
+  background:rgba(0,0,0,0.16);
+  filter:blur(10px);
+  right:-110px;
+  bottom:-120px;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.box{
+  position:relative;
+  z-index:2;
+  background:rgba(255,255,255,0.13);
+  backdrop-filter:blur(28px);
+  -webkit-backdrop-filter:blur(28px);
+  padding:20px;
+  border-radius:24px;
+  width:340px;
+  max-height:92vh;
+  overflow-y:auto;
+  scrollbar-width:none;
+  text-align:center;
+  color:white;
+  border:1px solid rgba(255,255,255,0.25);
+  box-shadow:
+    0 22px 60px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+.box::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:24px;
+  padding:1px;
+  background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.05),rgba(255,255,255,.35));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+
+.box::-webkit-scrollbar{display:none;}
+
+.brand{
+  margin-bottom:16px;
+}
+
+.brand-badge{
+  width:52px;
+  height:52px;
+  margin:0 auto 9px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  background:linear-gradient(135deg,rgba(255,255,255,.30),rgba(255,255,255,.08));
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 12px 25px rgba(0,0,0,.22);
+}
+
+.brand h1{
+  font-size:24px;
+  line-height:1.1;
+  letter-spacing:.4px;
+  margin-bottom:4px;
+}
+
+.brand p{
+  font-size:12px;
+  opacity:.78;
+}
+
+h2{
+  font-size:22px;
+  margin-bottom:14px;
+  font-weight:800;
+  letter-spacing:.2px;
+}
+
+.main-tabs,.login-tabs{
+  display:flex;
+  margin-bottom:15px;
+  gap:8px;
+  padding:5px;
+  border-radius:16px;
+  background:rgba(0,0,0,0.18);
+  border:1px solid rgba(255,255,255,0.16);
+}
+
+.main-tabs button,.login-tabs button{
+  flex:1;
+  padding:11px 8px;
+  border:none;
+  border-radius:12px;
+  background:rgba(255,255,255,0.12);
+  color:white;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+  transition:.25s ease;
+}
+
+.main-tabs button:hover,.login-tabs button:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,0.22);
+}
+
+.main-tabs button.active{
+  background:linear-gradient(45deg,#ff6a00,#ee0979);
+  box-shadow:0 8px 20px rgba(238,9,121,.35);
+}
+
+.login-tabs button.active{
+  background:linear-gradient(45deg,#2575fc,#6a11cb);
+  box-shadow:0 8px 20px rgba(37,117,252,.35);
+}
+
+.form-section,.login-inner-section{display:none;}
+.form-section.active,.login-inner-section.active{
+  display:block;
+  animation:fadeUp .35s ease;
+}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+input{
+  width:100%;
+  padding:12px 13px;
+  margin:6px 0;
+  border:none;
+  border-radius:14px;
+  background:rgba(255,255,255,0.17);
+  color:white;
+  font-size:13px;
+  border:1px solid rgba(255,255,255,0.18);
+  transition:.25s ease;
+}
+
+input::placeholder{color:#eee;}
+
+input:focus{
+  outline:none;
+  background:rgba(255,255,255,0.27);
+  border-color:rgba(255,255,255,0.55);
+  box-shadow:0 0 0 3px rgba(255,255,255,0.10);
+  transform:scale(1.015);
+}
+
+button.action-btn{
+  width:100%;
+  padding:12px;
+  margin-top:7px;
+  border:none;
+  border-radius:14px;
+  background:linear-gradient(45deg,#ff6a00,#ee0979);
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.2px;
+  box-shadow:0 10px 22px rgba(238,9,121,.28);
+  transition:.25s ease;
+}
+
+button.action-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 15px 30px rgba(238,9,121,.40);
+}
+
+button.action-btn:active{
+  transform:scale(.98);
+}
+
+button.login-btn{
+  background:linear-gradient(45deg,#2575fc,#6a11cb);
+  box-shadow:0 10px 22px rgba(37,117,252,.28);
+}
+
+button.login-btn:hover{
+  box-shadow:0 15px 30px rgba(37,117,252,.42);
+}
+
+/* ✅ FACE SCAN UI IMPROVED ONLY */
+video{
+  width:100%;
+  border-radius:18px;
+  margin-top:10px;
+  border:2px solid rgba(0,255,204,0.90);
+  box-shadow:
+    0 0 22px rgba(0,255,204,0.60),
+    0 0 45px rgba(37,117,252,0.25),
+    0 14px 28px rgba(0,0,0,.35);
+  background:rgba(0,0,0,.35);
+  padding:3px;
+}
+
+#error,#loginError{
+  color:#ffb3b3;
+  font-size:11px;
+  margin-top:6px;
+  min-height:14px;
+}
+
+#status,#loginStatus{
+  font-size:12px;
+  margin-top:8px;
+  min-height:22px;
+  color:#caffee;
+}
+
+.show-pass{
+  font-size:12px;
+  margin:7px 0;
+  text-align:left;
+  opacity:.9;
+}
+
+.show-pass input{
+  accent-color:#ee0979;
+}
+
+.google-btn{
+  background:white !important;
+  color:#333 !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:700;
+  box-shadow:0 10px 22px rgba(255,255,255,.16) !important;
+}
+
+.google-btn:hover{
+  box-shadow:0 14px 28px rgba(255,255,255,.28) !important;
+}
+
+.google-icon{
+  width:18px;
+  height:18px;
+}
+
+p[onclick="forgotPassword()"]{
+  opacity:.86;
+  transition:.25s ease;
+}
+
+p[onclick="forgotPassword()"]:hover{
+  opacity:1;
+  text-decoration:underline;
+}
+
+@media(max-width:420px){
+  .box{
+    width:100%;
+    padding:18px;
+  }
+
+  .brand h1{
+    font-size:22px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <div class="brand">
+    <div class="brand-badge">🔐</div>
+    <h1>Smart Auth</h1>
+    <p>Secure ID + Face Login System</p>
+  </div>
+
+  <div class="main-tabs">
+    <button id="mainTabRegister" class="active" onclick="showMainTab('register')">Register</button>
+    <button id="mainTabLogin" onclick="showMainTab('login')">Login</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerSection" class="form-section active">
+    <h2>Register 📱</h2>
+
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="phone" placeholder="Mobile">
+
+    <button class="action-btn" onclick="sendOTP()">Send OTP</button>
+
+    <input id="otp" placeholder="Enter OTP">
+
+    <button class="action-btn" onclick="startRegisterCamera()">Open Camera 📸</button>
+    <video id="video" autoplay muted style="display:none;"></video>
+
+    <p id="status"></p>
+
+    <button class="action-btn" onclick="captureFace()">Capture Face ✅</button>
+
+    <input id="pass" type="password" placeholder="Password">
+    <input id="confirm" type="password" placeholder="Confirm Password">
+
+    <div class="show-pass">
+      <input type="checkbox" onclick="togglePass()" style="width:auto;"> Show Password
+    </div>
+
+    <button class="action-btn" onclick="register()">Register 🚀</button>
+
+    <p id="error"></p>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="form-section">
+    <h2>Login 🔐</h2>
+
+    <div class="login-tabs">
+      <button id="loginTab1" class="active" onclick="showLoginTab(1)">ID Login</button>
+      <button id="loginTab2" onclick="showLoginTab(2)">Face Login</button>
+    </div>
+
+    <div id="loginInner1" class="login-inner-section active">
+      <input id="loginEmail" placeholder="Email">
+      <input id="loginPassword" type="password" placeholder="Password">
+
+      <p id="loginError"></p>
+
+      <button class="action-btn login-btn" onclick="login()">Login 🚀</button>
+
+      <p onclick="forgotPassword()" style="font-size:12px;margin-top:5px;cursor:pointer;">
+        Forgot Password?
+      </p>
+
+      <button class="action-btn google-btn" onclick="googleLogin()">
+        <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg">
+        Continue with Google
+      </button>
+    </div>
+
+    <div id="loginInner2" class="login-inner-section">
+      <button class="action-btn login-btn" onclick="startLoginCamera()">Start Face Scan 📸</button>
+      <video id="loginVideo" autoplay muted style="display:none;"></video>
+      <p id="loginStatus"></p>
+      <button class="action-btn login-btn" onclick="faceLogin()">Face Unlock 🔓</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let modelsLoaded=false;
+let generatedOTP="";
+let videoStream=null;
+let loginVideoStream=null;
+
+async function loadModels(){
+ await faceapi.nets.tinyFaceDetector.loadFromUri('models');
+ await faceapi.nets.faceLandmark68Net.loadFromUri('models');
+ await faceapi.nets.faceRecognitionNet.loadFromUri('models');
+ modelsLoaded=true;
+}
+window.onload=loadModels;
+
+function showMainTab(tab){
+ document.getElementById("registerSection").classList.remove("active");
+ document.getElementById("loginSection").classList.remove("active");
+ document.getElementById("mainTabRegister").classList.remove("active");
+ document.getElementById("mainTabLogin").classList.remove("active");
+
+ if(tab==="register"){
+  document.getElementById("registerSection").classList.add("active");
+  document.getElementById("mainTabRegister").classList.add("active");
+ }else{
+  document.getElementById("loginSection").classList.add("active");
+  document.getElementById("mainTabLogin").classList.add("active");
+ }
+}
+
+function showLoginTab(tab){
+ document.getElementById("loginInner1").classList.remove("active");
+ document.getElementById("loginInner2").classList.remove("active");
+ document.getElementById("loginTab1").classList.remove("active");
+ document.getElementById("loginTab2").classList.remove("active");
+
+ document.getElementById("loginInner"+tab).classList.add("active");
+ document.getElementById("loginTab"+tab).classList.add("active");
+
+ document.getElementById("loginError").innerText="";
+ document.getElementById("loginStatus").innerText="";
+}
+
+// OTP
+function sendOTP(){
+ let phone=document.getElementById("phone").value.replace(/\D/g,'');
+ if(phone.length!==10){alert("Enter valid number");return;}
+ generatedOTP=Math.floor(1000+Math.random()*9000);
+ alert("OTP: "+generatedOTP);
+}
+
+// REGISTER CAMERA
+function startRegisterCamera(){
+ let video=document.getElementById("video");
+ video.style.display="block";
+
+ navigator.mediaDevices.getUserMedia({video:true})
+ .then(async stream=>{
+   video.srcObject=stream;
+   videoStream=stream;
+   await video.play();
+ })
+ .catch(()=>alert("Camera permission denied ❌"));
+}
+
+// LOGIN CAMERA
+async function startLoginCamera(){
+ let video=document.getElementById("loginVideo");
+ document.getElementById("loginStatus").innerText="Camera starting... 📸";
+
+ video.style.display="block";
+ loginVideoStream = await navigator.mediaDevices.getUserMedia({video:true});
+ video.srcObject = loginVideoStream;
+
+ document.getElementById("loginStatus").innerText="Camera Started ✅";
+}
+
+// STOP CAMERA
+function stopCamera(){
+ if(videoStream){
+  videoStream.getTracks().forEach(track=>track.stop());
+ }
+ if(loginVideoStream){
+  loginVideoStream.getTracks().forEach(track=>track.stop());
+ }
+}
+
+// PASSWORD TOGGLE
+function togglePass(){
+ let p=document.getElementById("pass");
+ let c=document.getElementById("confirm");
+ p.type=p.type==="password"?"text":"password";
+ c.type=c.type==="password"?"text":"password";
+}
+
+// FACE CAPTURE
+async function captureFace(){
+ let status=document.getElementById("status");
+ let video=document.getElementById("video");
+
+ if(!modelsLoaded){
+   alert("Models loading ⏳");
+   return;
+ }
+
+ if(!videoStream){
+   alert("Start camera first 📸");
+   return;
+ }
+
+ status.innerText="Capturing face samples... 🎯";
+
+ let descriptors=[];
+
+ for(let i=0;i<5;i++){
+
+   const detections=await faceapi.detectAllFaces(
+     video,
+     new faceapi.TinyFaceDetectorOptions({inputSize:128})
+   );
+
+   if(detections.length!==1){
+     status.innerText="Only 1 person allowed ❌";
+     return;
+   }
+
+   const detection=await faceapi
+     .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions())
+     .withFaceLandmarks()
+     .withFaceDescriptor();
+
+   if(!detection){
+     status.innerText="Face not clear ❌";
+     return;
+   }
+
+   descriptors.push(Array.from(detection.descriptor));
+   await new Promise(r=>setTimeout(r,250));
+ }
+
+ localStorage.setItem("faceDescriptors", JSON.stringify(descriptors));
+
+ status.innerText="Face Registered ✅";
+ alert("Face Registered Successfully ✅");
+}
+
+// REGISTER
+function register(){
+ let name=document.getElementById("name").value;
+ let email=document.getElementById("email").value;
+ let pass=document.getElementById("pass").value;
+ let confirm=document.getElementById("confirm").value;
+ let otp=document.getElementById("otp").value;
+ let error=document.getElementById("error");
+
+ if(!generatedOTP){error.innerText="Generate OTP";return;}
+ if(otp!=generatedOTP){error.innerText="Wrong OTP";return;}
+ if(pass!==confirm){error.innerText="Password mismatch";return;}
+
+ if(!localStorage.getItem("faceDescriptors")){
+   error.innerText="Capture face first 📸";
+   return;
+ }
+
+ localStorage.setItem("name",name);
+ localStorage.setItem("pass",pass);
+ localStorage.setItem("email",email);
+
+ let users=JSON.parse(localStorage.getItem("users")) || [];
+
+ users.push({
+   name:name,
+   email:email,
+   password:pass,
+   date:new Date().toLocaleString()
+ });
+
+ localStorage.setItem("users", JSON.stringify(users));
+
+ alert("Registered Successfully ✅");
+
+ document.getElementById("loginEmail").value=email;
+ document.getElementById("loginPassword").value="";
+ document.getElementById("loginError").innerText="";
+ showMainTab("login");
+}
+
+// LOGIN HISTORY
+function saveLoginHistory(type){
+ let logs=JSON.parse(localStorage.getItem("loginLogs")) || [];
+
+ logs.push({
+   email:localStorage.getItem("email"),
+   type:type,
+   time:new Date().toLocaleString()
+ });
+
+ localStorage.setItem("loginLogs", JSON.stringify(logs));
+}
+
+// ATTENDANCE
+function saveAttendance(type,email){
+ let logs=JSON.parse(localStorage.getItem("attendanceLogs")) || [];
+
+ logs.push({
+   name:localStorage.getItem("name"),
+   email:email,
+   type:type,
+   date:new Date().toLocaleDateString(),
+   time:new Date().toLocaleTimeString(),
+   duration:"Active"
+ });
+
+ localStorage.setItem("attendanceLogs", JSON.stringify(logs));
+}
+
+function startSession(){
+ localStorage.setItem("loginStartTime", Date.now());
+}
+
+// ID LOGIN
+function login(){
+ document.getElementById("loginError").innerText="";
+
+ let email=document.getElementById("loginEmail").value;
+ let pass=document.getElementById("loginPassword").value;
+
+ if(email===localStorage.getItem("email") && pass===localStorage.getItem("pass")){
+  startSession();
+  saveLoginHistory("ID Login");
+  saveAttendance("ID", email);
+  stopCamera();
+  window.location.href="welcome.html";
+ }else{
+  document.getElementById("loginError").innerText="Wrong credentials ❌";
+ }
+}
+
+// FACE LOGIN
+async function faceLogin(){
+ let status=document.getElementById("loginStatus");
+ let video=document.getElementById("loginVideo");
+
+ status.innerText="";
+
+ if(!loginVideoStream){
+  status.innerText="Start camera first 📸";
+  return;
+ }
+
+ let saved=localStorage.getItem("faceDescriptors");
+ if(!saved){
+  status.innerText="Register face first ❌";
+  return;
+ }
+
+ const storedDescriptors=JSON.parse(saved);
+
+ status.innerText="Checking environment...";
+
+ let validFrames=0;
+
+ for(let i=0;i<6;i++){
+
+   const faces=await faceapi.detectAllFaces(
+     video,
+     new faceapi.TinyFaceDetectorOptions({inputSize:160})
+   );
+
+   if(faces.length===0){
+     status.innerText="No face detected ❌";
+     return;
+   }
+
+   if(faces.length>1){
+     status.innerText="Multiple faces detected ❌";
+     return;
+   }
+
+   let face=faces[0].box;
+
+   if(face.width<130 || face.height<130){
+     status.innerText="Come closer 📸";
+     return;
+   }
+
+   let centerX=face.x+face.width/2;
+   let videoCenter=video.videoWidth/2;
+
+   if(Math.abs(centerX-videoCenter)>70){
+     status.innerText="Center your face 🎯";
+     return;
+   }
+
+   validFrames++;
+   await new Promise(r=>setTimeout(r,180));
+ }
+
+ if(validFrames<5){
+   status.innerText="Hold still ❌";
+   return;
+ }
+
+ status.innerText="Verifying face...";
+
+ const detection=await faceapi
+   .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions({inputSize:160}))
+   .withFaceLandmarks()
+   .withFaceDescriptor();
+
+ if(!detection){
+  status.innerText="Face not clear ❌";
+  return;
+ }
+
+ let match=false;
+
+ for(let i=0;i<storedDescriptors.length;i++){
+   const stored=new Float32Array(storedDescriptors[i]);
+
+   const distance=faceapi.euclideanDistance(
+     stored,
+     detection.descriptor
+   );
+
+   if(distance<0.55){
+     match=true;
+     break;
+   }
+ }
+
+ if(match){
+  startSession();
+  saveLoginHistory("Face Login");
+  saveAttendance("FACE", localStorage.getItem("email"));
+  status.innerText="Face Match ✅";
+  stopCamera();
+  setTimeout(()=>window.location.href="welcome.html",200);
+ }else{
+  status.innerText="Face Not Match ❌";
+ }
+}
+
+// GOOGLE LOGIN
+function googleLogin(){
+ let email=prompt("Enter Gmail");
+ let pattern=/^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+ if(!pattern.test(email)){
+  alert("Invalid Gmail ❌");
+  return;
+ }
+
+ localStorage.setItem("email", email);
+
+ startSession();
+ saveLoginHistory("Google Login");
+ saveAttendance("GOOGLE", email);
+
+ alert("Google Login Success ✅");
+ window.location.href="welcome.html";
+}
+
+// FORGOT PASSWORD
+function forgotPassword(){
+ let phone=prompt("Enter registered mobile");
+
+ if(!phone || phone.replace(/\D/g,'').length!==10){
+  alert("Invalid number ❌");
+  return;
+ }
+
+ let otp=Math.floor(1000+Math.random()*9000);
+ alert("OTP: "+otp);
+
+ let userOtp=prompt("Enter OTP");
+
+ if(userOtp!=otp){
+  alert("Wrong OTP ❌");
+  return;
+ }
+
+ let newPass=prompt("New Password");
+ let confirmPass=prompt("Confirm Password");
+
+ if(newPass!==confirmPass){
+  alert("Password mismatch ❌");
+  return;
+ }
+
+ localStorage.setItem("pass", newPass);
+ alert("Password Reset Successful ✅");
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Smart Login</title>
+
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Segoe UI';
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:linear-gradient(-45deg,#6a11cb,#2575fc,#ff6a00,#00c9a7);
+  background-size:400% 400%;
+  animation:bg 8s infinite;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.box{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(20px);
+  padding:25px;
+  border-radius:20px;
+  width:320px;
+  text-align:center;
+  color:white;
+}
+
+.tabs{
+  display:flex;
+  margin-bottom:15px;
+}
+
+.tabs button{
+  flex:1;
+  padding:10px;
+  border:none;
+  cursor:pointer;
+  background:rgba(255,255,255,0.2);
+  color:white;
+}
+
+.tabs button.active{
+  background:linear-gradient(45deg,#2575fc,#6a11cb);
+}
+
+.section{display:none;}
+.section.active{display:block;}
+
+input,button{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border:none;
+  border-radius:10px;
+}
+
+input{background:white;}
+
+button{
+  background:linear-gradient(45deg,#2575fc,#6a11cb);
+  color:white;
+  cursor:pointer;
+}
+
+video{
+  width:100%;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+#error{font-size:12px;color:#ffb3b3;}
+
+.google-btn{
+  background:white;
+  color:#333;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  font-weight:500;
+}
+
+.google-icon{
+  width:18px;
+  height:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Login 🔐</h2>
+
+<div class="tabs">
+  <button id="tab1" class="active" onclick="showTab(1)">ID Login</button>
+  <button id="tab2" onclick="showTab(2)">Face Login</button>
+</div>
+
+<div id="section1" class="section active">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <p id="error"></p>
+  <button onclick="login()">Login 🚀</button>
+
+  <p onclick="forgotPassword()" style="font-size:12px;margin-top:5px;cursor:pointer;">
+    Forgot Password?
+  </p>
+
+  <button class="google-btn" onclick="googleLogin()">
+    <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg">
+    Continue with Google
+  </button>
+</div>
+
+<div id="section2" class="section">
+  <button onclick="startCamera()">Start Face Scan 📸</button>
+  <video id="video" autoplay muted style="display:none;"></video>
+  <p id="status" style="font-size:12px;"></p>
+  <button onclick="faceLogin()">Face Unlock 🔓</button>
+</div>
+
+<p><a href="register.html" style="color:white;">Register</a></p>
+
+</div>
+
+<script>
+
+// 🔥 LOGIN HISTORY
+function saveLoginHistory(type){
+ let logs = JSON.parse(localStorage.getItem("loginLogs")) || [];
+
+ logs.push({
+   email: localStorage.getItem("email"),
+   type: type,
+   time: new Date().toLocaleString()
+ });
+
+ localStorage.setItem("loginLogs", JSON.stringify(logs));
+}
+
+// 🔥 ATTENDANCE WITH DURATION
+function saveAttendance(type,email){
+ let logs = JSON.parse(localStorage.getItem("attendanceLogs")) || [];
+
+ logs.push({
+   name: localStorage.getItem("name"),
+   email: email,
+   type: type,
+   date: new Date().toLocaleDateString(),
+   time: new Date().toLocaleTimeString(),
+   duration: "Active" // initial
+ });
+
+ localStorage.setItem("attendanceLogs", JSON.stringify(logs));
+}
+
+// 🔥 SAVE LOGIN START TIME
+function startSession(){
+ localStorage.setItem("loginStartTime", Date.now());
+}
+
+// TAB
+function showTab(tab){
+ document.getElementById("section1").classList.remove("active");
+ document.getElementById("section2").classList.remove("active");
+
+ document.getElementById("tab1").classList.remove("active");
+ document.getElementById("tab2").classList.remove("active");
+
+ document.getElementById("section"+tab).classList.add("active");
+ document.getElementById("tab"+tab).classList.add("active");
+}
+
+let video = document.getElementById("video");
+let videoStream = null;
+
+async function loadModels(){
+ await faceapi.nets.tinyFaceDetector.loadFromUri('models');
+ await faceapi.nets.faceLandmark68Net.loadFromUri('models');
+ await faceapi.nets.faceRecognitionNet.loadFromUri('models');
+}
+window.onload = loadModels;
+
+// 🔥 LOGIN
+function login(){
+ let email=document.getElementById("email").value;
+ let pass=document.getElementById("password").value;
+
+ if(email===localStorage.getItem("email") && pass===localStorage.getItem("pass")){
+  startSession(); // ✅ NEW
+  saveLoginHistory("ID Login");
+  saveAttendance("ID", email);
+  stopCamera();
+  window.location.href="welcome.html";
+ }else{
+  document.getElementById("error").innerText="Wrong credentials ❌";
+ }
+}
+
+async function startCamera(){
+ video.style.display="block";
+ videoStream = await navigator.mediaDevices.getUserMedia({video:true});
+ video.srcObject = videoStream;
+}
+
+function stopCamera(){
+ if(videoStream){
+  videoStream.getTracks().forEach(track=>track.stop());
+ }
+}
+
+// 🔥 FACE LOGIN (UNCHANGED LOGIC + ADD)
+async function faceLogin(){
+
+ let status = document.getElementById("status");
+
+ if(!videoStream){
+  status.innerText="Start camera first 📸";
+  return;
+ }
+
+ let saved = localStorage.getItem("faceDescriptors");
+ if(!saved){
+  status.innerText="Register face first ❌";
+  return;
+ }
+
+ const storedDescriptors = JSON.parse(saved);
+
+ status.innerText="Checking environment...";
+
+ let validFrames = 0;
+
+ for(let i=0;i<6;i++){
+
+   const faces = await faceapi.detectAllFaces(
+     video,
+     new faceapi.TinyFaceDetectorOptions({inputSize:160})
+   );
+
+   if(faces.length === 0){
+     status.innerText="No face detected ❌";
+     return;
+   }
+
+   if(faces.length > 1){
+     status.innerText="Multiple faces detected ❌";
+     return;
+   }
+
+   let face = faces[0].box;
+
+   if(face.width < 130 || face.height < 130){
+     status.innerText="Come closer 📸";
+     return;
+   }
+
+   let centerX = face.x + face.width/2;
+   let videoCenter = video.videoWidth / 2;
+
+   if(Math.abs(centerX - videoCenter) > 70){
+     status.innerText="Center your face 🎯";
+     return;
+   }
+
+   validFrames++;
+
+   await new Promise(r=>setTimeout(r,180));
+ }
+
+ if(validFrames < 5){
+   status.innerText="Hold still ❌";
+   return;
+ }
+
+ status.innerText="Verifying face...";
+
+ const detection = await faceapi
+   .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions({inputSize:160}))
+   .withFaceLandmarks()
+   .withFaceDescriptor();
+
+ if(!detection){
+  status.innerText="Face not clear ❌";
+  return;
+ }
+
+ let match = false;
+
+ for(let i=0;i<storedDescriptors.length;i++){
+
+   const stored = new Float32Array(storedDescriptors[i]);
+
+   const distance = faceapi.euclideanDistance(
+     stored,
+     detection.descriptor
+   );
+
+   if(distance < 0.55){
+     match = true;
+     break;
+   }
+ }
+
+ if(match){
+  startSession(); // ✅ NEW
+  saveLoginHistory("Face Login");
+  saveAttendance("FACE", localStorage.getItem("email"));
+  status.innerText="Face Match ✅";
+  stopCamera();
+  setTimeout(()=>window.location.href="welcome.html",200);
+ }else{
+  status.innerText="Face Not Match ❌";
+ }
+}
+
+// GOOGLE LOGIN
+function googleLogin(){
+ let email = prompt("Enter Gmail");
+
+ let pattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+
+ if(!pattern.test(email)){
+  alert("Invalid Gmail ❌");
+  return;
+ }
+
+ localStorage.setItem("email", email);
+
+ startSession(); // ✅ NEW
+ saveLoginHistory("Google Login");
+ saveAttendance("GOOGLE", email);
+
+ alert("Google Login Success ✅");
+ window.location.href="welcome.html";
+}
+
+// बाकी SAME
+function forgotPassword(){
+ let phone = prompt("Enter registered mobile");
+
+ if(!phone || phone.replace(/\D/g,'').length !== 10){
+  alert("Invalid number ❌");
+  return;
+ }
+
+ let otp = Math.floor(1000 + Math.random()*9000);
+ alert("OTP: " + otp);
+
+ let userOtp = prompt("Enter OTP");
+
+ if(userOtp != otp){
+  alert("Wrong OTP ❌");
+  return;
+ }
+
+ let newPass = prompt("New Password");
+ let confirmPass = prompt("Confirm Password");
+
+ if(newPass !== confirmPass){
+  alert("Password mismatch ❌");
+  return;
+ }
+
+ localStorage.setItem("pass", newPass);
+ alert("Password Reset Successful ✅");
+}
+
+</script>
+
+</body>
+</html>

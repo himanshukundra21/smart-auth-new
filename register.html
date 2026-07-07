@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register</title>
+
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+  font-family:'Segoe UI', sans-serif;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:10px;
+  background:linear-gradient(-45deg,#ff6a00,#ee0978f2,#2574fc,#00c9a7);
+  background-size:400% 400%;
+  animation:bg 8s ease infinite;
+}
+
+@keyframes bg{
+0%{background-position:0% 50%;}
+50%{background-position:100% 50%;}
+100%{background-position:0% 50%;}
+}
+
+.box{
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(25px);
+  padding:18px;
+  border-radius:18px;
+  width:260px;
+  max-height:90vh;
+  overflow-y:auto;
+  scrollbar-width:none;
+}
+
+.box::-webkit-scrollbar{display:none;}
+
+.box{
+  text-align:center;
+  color:white;
+  box-shadow:0 8px 30px rgba(0,0,0,0.3);
+}
+
+input{
+  width:100%;
+  padding:9px;
+  margin:5px 0;
+  border:none;
+  border-radius:10px;
+  background:rgba(255,255,255,0.2);
+  color:white;
+  font-size:13px;
+}
+
+input::placeholder{color:#eee;}
+
+input:focus{
+  outline:none;
+  background:rgba(255,255,255,0.3);
+}
+
+button{
+  width:100%;
+  padding:9px;
+  margin-top:5px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(45deg,#ff6a00,#ee0979);
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
+
+video{
+  width:100%;
+  border-radius:10px;
+  margin-top:6px;
+}
+
+#error{color:#ffb3b3;font-size:11px;margin-top:5px;}
+#status{font-size:12px;margin-top:5px;}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>Register 📱</h2>
+
+<input id="name" placeholder="Name">
+<input id="email" placeholder="Email">
+<input id="phone" placeholder="Mobile">
+
+<button onclick="sendOTP()">Send OTP</button>
+
+<input id="otp" placeholder="Enter OTP">
+
+<button onclick="startCamera()">Open Camera 📸</button>
+<video id="video" autoplay muted style="display:none;"></video>
+
+<p id="status"></p>
+
+<button onclick="captureFace()">Capture Face ✅</button>
+
+<input id="pass" type="password" placeholder="Password">
+<input id="confirm" type="password" placeholder="Confirm Password">
+
+<input type="checkbox" onclick="togglePass()"> Show Password
+
+<button onclick="register()">Register 🚀</button>
+
+<p id="error"></p>
+
+<p>Already? <a href="login.html" style="color:white;">Login</a></p>
+</div>
+
+<script>
+
+let modelsLoaded=false;
+
+async function loadModels(){
+ await faceapi.nets.tinyFaceDetector.loadFromUri('models');
+ await faceapi.nets.faceLandmark68Net.loadFromUri('models');
+ await faceapi.nets.faceRecognitionNet.loadFromUri('models');
+ modelsLoaded=true;
+}
+window.onload=loadModels;
+
+let generatedOTP="";
+let videoStream;
+
+// OTP
+function sendOTP(){
+ let phone=document.getElementById("phone").value.replace(/\D/g,'');
+ if(phone.length!==10){alert("Enter valid number");return;}
+ generatedOTP=Math.floor(1000+Math.random()*9000);
+ alert("OTP: "+generatedOTP);
+}
+
+// CAMERA
+function startCamera(){
+ let video=document.getElementById("video");
+ video.style.display="block";
+
+ navigator.mediaDevices.getUserMedia({video:true})
+ .then(async stream=>{
+   video.srcObject=stream;
+   videoStream=stream;
+   await video.play();
+ })
+ .catch(()=>alert("Camera permission denied ❌"));
+}
+
+// PASSWORD TOGGLE
+function togglePass(){
+ let p=document.getElementById("pass");
+ let c=document.getElementById("confirm");
+ p.type=p.type==="password"?"text":"password";
+ c.type=c.type==="password"?"text":"password";
+}
+
+// 🔥 FINAL MULTI SAMPLE FACE CAPTURE
+async function captureFace(){
+
+ let status = document.getElementById("status");
+
+ if(!modelsLoaded){
+   alert("Models loading ⏳");
+   return;
+ }
+
+ if(!videoStream){
+   alert("Start camera first 📸");
+   return;
+ }
+
+ status.innerText = "Capturing face samples... 🎯";
+
+ let descriptors = [];
+
+ for(let i=0;i<5;i++){
+
+   const detections = await faceapi.detectAllFaces(
+     video,
+     new faceapi.TinyFaceDetectorOptions({inputSize:128})
+   );
+
+   if(detections.length !== 1){
+     status.innerText = "Only 1 person allowed ❌";
+     return;
+   }
+
+   const detection = await faceapi
+     .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions())
+     .withFaceLandmarks()
+     .withFaceDescriptor();
+
+   if(!detection){
+     status.innerText="Face not clear ❌";
+     return;
+   }
+
+   descriptors.push(Array.from(detection.descriptor));
+
+   await new Promise(r=>setTimeout(r,250));
+ }
+
+ localStorage.setItem("faceDescriptors", JSON.stringify(descriptors));
+
+ status.innerText="Face Registered ✅";
+ alert("Face Registered Successfully ✅");
+}
+
+// ✅ UPDATED REGISTER (ONLY CHANGE HERE)
+function register(){
+ let name=document.getElementById("name").value;
+ let email=document.getElementById("email").value;
+ let pass=document.getElementById("pass").value;
+ let confirm=document.getElementById("confirm").value;
+ let otp=document.getElementById("otp").value;
+ let error=document.getElementById("error");
+
+ if(!generatedOTP){error.innerText="Generate OTP";return;}
+ if(otp!=generatedOTP){error.innerText="Wrong OTP";return;}
+ if(pass!==confirm){error.innerText="Password mismatch";return;}
+
+ if(!localStorage.getItem("faceDescriptors")){
+   error.innerText="Capture face first 📸";
+   return;
+ }
+
+ // 🔥 OLD DATA (same)
+ localStorage.setItem("name",name);
+ localStorage.setItem("pass",pass);
+ localStorage.setItem("email",email);
+
+ // 🔥 NEW: SAVE HISTORY (ADMIN PANEL KE LIYE)
+ let users = JSON.parse(localStorage.getItem("users")) || [];
+
+ users.push({
+   name: name,
+   email: email,
+   password: pass,
+   date: new Date().toLocaleString()
+ });
+
+ localStorage.setItem("users", JSON.stringify(users));
+
+ alert("Registered Successfully ✅");
+ window.location.href="login.html";
+}
+
+</script>
+
+</body>
+</html>  
