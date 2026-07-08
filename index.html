@@ -1,294 +1,1469 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+ <link rel="icon" type="image/png" href="assets/bg.png?v=2">
 <meta charset="UTF-8">
-<title>Smart Login</title>
-
+<title>Smart Auth</title>
 <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
 body{
-  font-family:'Segoe UI';
+  font-family:'Segoe UI', sans-serif;
   height:100vh;
   display:flex;
   justify-content:center;
   align-items:center;
-  background:linear-gradient(-45deg,#6a11cb,#2575fc,#ff6a00,#00c9a7);
-  background-size:400% 400%;
-  animation:bg 8s infinite;
+  padding:10px;
+  overflow:hidden;
+
+  background:
+    linear-gradient(rgba(10,10,25,.35),rgba(10,10,25,.55)),
+    url("assets/bg.png"),
+    linear-gradient(135deg,#101020,#1b1430,#151226);
+
+  background-size: cover, cover, 100% 100%;
+  background-position: center, left center, center;
+  background-repeat: no-repeat;
+  position:relative;
 }
 
-@keyframes bg{
-0%{background-position:0% 50%;}
-50%{background-position:100% 50%;}
-100%{background-position:0% 50%;}
+body::before{
+  content:"";
+  position:absolute;
+  width:260px;
+  height:260px;
+  border-radius:50%;
+  left:-120px;
+  top:60%;
+  background:radial-gradient(circle at 32% 30%,#c56cff,#6f00ff 45%,#2400c9 80%);
+  filter:blur(.2px);
+  opacity:.35;
+  box-shadow:0 30px 70px rgba(85,0,255,.45);
+  animation:floatOrb 8s ease-in-out infinite alternate;
+}
+
+body::after{
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  right:10%;
+  top:18%;
+  background:radial-gradient(circle at 35% 30%,#c56cff,#7d00ff 45%,#2500c9 80%);
+  opacity:.9;
+  box-shadow:0 30px 70px rgba(85,0,255,.45);
+  animation:floatOrb2 9s ease-in-out infinite alternate;
+}
+
+@keyframes floatOrb{
+  from{transform:translateY(0);}
+  to{transform:translateY(35px);}
+}
+
+@keyframes floatOrb2{
+  from{transform:translateY(20px);}
+  to{transform:translateY(-25px);}
+}
+
+.global-back{
+  position:fixed;
+  top:18px;
+  left:18px;
+  z-index:9999;
+  padding:10px 16px;
+  border:none;
+  border-radius:14px;
+  background:rgba(255,255,255,.13);
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  display:none;
+  transition:.25s ease;
+}
+
+.global-back:hover{
+  background:rgba(255,255,255,.24);
+  transform:translateY(-2px);
+}
+
+.page-wrap{
+  position:relative;
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
 }
 
 .box{
-  background:rgba(255,255,255,0.15);
-  backdrop-filter:blur(20px);
-  padding:25px;
-  border-radius:20px;
-  width:320px;
+  position:relative;
+  z-index:2;
+  width:400px;
+  max-height:85vh;
+  padding:45px 26px 28px;
+  border-radius:44px;
+  overflow:hidden;
   text-align:center;
   color:white;
+  background:rgba(180,185,205,.32);
+  backdrop-filter:blur(30px);
+  -webkit-backdrop-filter:blur(30px);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:
+    0 35px 90px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    0 0 65px rgba(170,80,255,.25);
 }
 
-.tabs{
+.box::before{
+  content:"";
+  position:absolute;
+  width:170px;
+  height:170px;
+  right:-45px;
+  bottom:-45px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 25%,#d77dff,#9c2bff 48%,#6510d7 80%);
+  filter:blur(.2px);
+  opacity:.95;
+  z-index:-1;
+}
+
+.box::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:44px;
+  padding:1px;
+  background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(255,255,255,.08),rgba(80,200,255,.65));
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+
+.brand{
+  margin-bottom:14px;
+}
+
+.brand-badge{
+  width:54px;
+  height:54px;
+  margin:0 auto 10px;
+  border-radius:20px;
   display:flex;
-  margin-bottom:15px;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  background:linear-gradient(135deg,#e628b7,#2378ff);
+  box-shadow:
+    0 0 34px rgba(207,55,255,.72),
+    0 0 25px rgba(207,55,255,.8),
+    0 0 45px rgba(80,120,255,.6);
 }
 
-.tabs button{
+.brand h1{
+  font-size:25px;
+  font-weight:300;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.brand p{
+  font-size:12px;
+  opacity:.86;
+}
+
+h2{
+  font-size:24px;
+  margin-bottom:12px;
+}
+
+.main-tabs,.login-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+  padding:7px;
+  border-radius:18px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.16);
+}
+
+.main-tabs button,.login-tabs button{
   flex:1;
-  padding:10px;
+  padding:12px 8px;
   border:none;
-  cursor:pointer;
-  background:rgba(255,255,255,0.2);
+  border-radius:14px;
+  background:rgba(255,255,255,.11);
   color:white;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  transition:.25s ease;
 }
 
-.tabs button.active{
-  background:linear-gradient(45deg,#2575fc,#6a11cb);
+.main-tabs button:hover,.login-tabs button:hover{
+  transform:translateY(-2px);
+  background:rgba(255,255,255,.20);
 }
 
-.section{display:none;}
-.section.active{display:block;}
+.main-tabs button.active,
+.login-tabs button.active{
+  background:linear-gradient(45deg,#15b7ff,#7b20ef);
+  box-shadow:0 12px 28px rgba(90,40,255,.38);
+}
 
-input,button{
+.form-section,.login-inner-section{display:none;}
+.form-section.active,.login-inner-section.active{
+  display:block;
+  animation:fadeUp .35s ease;
+}
+
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(8px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+input{
+  width:100%;
+  padding:12px 14px;
+  margin:6px 0;
+  border:none;
+  border-radius:14px;
+  background:rgba(255,255,255,.16);
+  color:white;
+  font-size:13px;
+  border:1px solid rgba(255,255,255,.20);
+  transition:.25s ease;
+}
+
+input::placeholder{color:#eaeaea;}
+
+input:focus{
+  outline:none;
+  border-color:#7cdcff;
+  box-shadow:0 0 15px rgba(80,210,255,.65);
+  transform:scale(1.012);
+  background:rgba(255,255,255,.22);
+}
+
+button.action-btn{
   width:100%;
   padding:12px;
-  margin:8px 0;
+  margin-top:8px;
   border:none;
-  border-radius:10px;
-}
-
-input{background:white;}
-
-button{
-  background:linear-gradient(45deg,#2575fc,#6a11cb);
+  border-radius:16px;
+  background:linear-gradient(45deg,#14b8ff,#7420e8);
   color:white;
   cursor:pointer;
+  font-size:13px;
+  font-weight:800;
+  transition:.25s ease;
+  box-shadow:0 12px 28px rgba(35,115,255,.28);
+}
+
+button.action-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 26px rgba(90,80,255,.65);
+}
+
+button.action-btn:active{
+  transform:scale(.98);
+}
+
+button.login-btn{
+  background:linear-gradient(45deg,#15b7ff,#7b20ef);
+  box-shadow:0 12px 28px rgba(35,115,255,.28);
+}
+
+button.login-btn:hover{
+  box-shadow:0 0 26px rgba(90,80,255,.65);
 }
 
 video{
   width:100%;
-  border-radius:10px;
-  margin-top:10px;
+  max-height:145px;
+  object-fit:cover;
+  border-radius:18px;
+  margin-top:8px;
+  border:2px solid #7cdcff;
+  box-shadow:
+    0 0 20px rgba(100,220,255,.75),
+    0 0 40px rgba(120,80,255,.25),
+    0 14px 28px rgba(0,0,0,.35);
+  background:black;
+  padding:3px;
 }
 
-#error{font-size:12px;color:#ffb3b3;}
+#status,#loginStatus{
+  font-size:12px;
+  margin-top:6px;
+  min-height:18px;
+  color:#9cfaff;
+}
+
+#error,#loginError{
+  color:#ffb0cf;
+  font-size:11px;
+  margin-top:5px;
+  min-height:12px;
+}
+
+.show-pass{
+  font-size:12px;
+  margin:6px 0;
+  text-align:left;
+  opacity:.9;
+}
+
+.show-pass input{
+  accent-color:#8b2dff;
+}
 
 .google-btn{
-  background:white;
-  color:#333;
+  background:white !important;
+  color:#111 !important;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:10px;
-  font-weight:500;
+  font-weight:800;
 }
 
 .google-icon{
   width:18px;
   height:18px;
 }
+
+p[onclick="forgotPassword()"]{
+  opacity:.85;
+  transition:.25s ease;
+}
+
+p[onclick="forgotPassword()"]:hover{
+  opacity:1;
+  text-decoration:underline;
+}
+
+.feature-row{
+  display:flex;
+  gap:14px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+
+.feature-chip{
+  color:white;
+  min-width:150px;
+  padding:12px 14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(16px);
+  box-shadow:0 12px 34px rgba(0,0,0,.25);
+  font-size:13px;
+  font-weight:700;
+  transition:.3s;
+}
+
+.feature-chip:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 20px rgba(120,80,255,.5);
+}
+
+.feature-chip span{
+  display:block;
+  font-size:12px;
+  opacity:.72;
+  margin-top:3px;
+  font-weight:500;
+}
+
+.otp-popup-overlay{
+  position:fixed;
+  inset:0;
+  z-index:10000;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(12px);
+}
+
+.otp-popup-box{
+  width:310px;
+  padding:26px 24px;
+  border-radius:26px;
+  text-align:center;
+  color:white;
+  background:rgba(180,185,205,.28);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 28px 70px rgba(0,0,0,.55),0 0 40px rgba(120,80,255,.35);
+  animation:otpPop .3s ease;
+}
+
+.otp-popup-box h3{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+.otp-popup-box p{
+  font-size:13px;
+  opacity:.82;
+  margin-bottom:16px;
+}
+
+.otp-code{
+  display:inline-block;
+  padding:13px 26px;
+  margin-bottom:18px;
+  border-radius:18px;
+  letter-spacing:8px;
+  font-size:28px;
+  font-weight:900;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.25);
+  color:#9cfaff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 0 22px rgba(80,210,255,.35);
+}
+
+.otp-popup-box button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(45deg,#15b7ff,#7b20ef);
+  color:white;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.register-progress{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.step-dot{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  font-weight:900;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.22);
+  color:white;
+}
+
+.step-dot.active{
+  background:linear-gradient(45deg,#15b7ff,#7b20ef);
+  box-shadow:0 0 18px rgba(100,180,255,.55);
+}
+
+.reg-step{display:none;}
+.reg-step.active{
+  display:block;
+  animation:fadeUp .35s ease;
+}
+
+.step-actions{
+  display:flex;
+  gap:10px;
+}
+
+.step-actions button{
+  flex:1;
+}
+
+@keyframes otpPop{
+  from{opacity:0;transform:scale(.92) translateY(10px);}
+  to{opacity:1;transform:scale(1) translateY(0);}
+}
+
+@media(max-width:600px){
+  .box{
+    width:95%;
+    padding:35px 22px 24px;
+    border-radius:34px;
+  }
+
+  body::before{
+    width:230px;
+    height:230px;
+    left:-70px;
+  }
+
+  body::after{
+    width:210px;
+    height:210px;
+    right:-70px;
+  }
+
+  .feature-row{
+    display:none;
+  }
+
+  .brand h1{
+    font-size:24px;
+  }
+}
+
 </style>
 </head>
 
 <body>
 
+<button id="globalBackBtn" class="global-back" onclick="goBack()">⬅ Back</button>
+
+<div class="page-wrap">
+
 <div class="box">
 
-<h2>Login 🔐</h2>
+  <div class="brand">
+    <div class="brand-badge">🔐</div>
+    <h1>Smart Auth</h1>
+    <p>Secure ID + Face Login System</p>
+  </div>
 
-<div class="tabs">
-  <button id="tab1" class="active" onclick="showTab(1)">ID Login</button>
-  <button id="tab2" onclick="showTab(2)">Face Login</button>
+  <div class="main-tabs">
+    <button id="mainTabRegister" onclick="showMainTab('register')">Register</button>
+    <button id="mainTabLogin" onclick="showMainTab('login')">Login</button>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerSection" class="form-section">
+    <h2>Register 📱</h2>
+
+    <div class="register-progress">
+      <div id="regDot1" class="step-dot active">1</div>
+      <div id="regDot2" class="step-dot">2</div>
+      <div id="regDot3" class="step-dot">3</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="regStep1" class="reg-step active">
+      <input id="name" placeholder="Name">
+      <input id="email" placeholder="Email">
+      <input id="phone" placeholder="Mobile">
+
+      <button class="action-btn" onclick="sendOTP()">Send OTP</button>
+
+      <input id="otp" placeholder="Enter OTP">
+
+      <button class="action-btn" onclick="nextRegisterStep(2)">Next ➜</button>
+
+      <p id="error"></p>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="regStep2" class="reg-step">
+      <button class="action-btn" onclick="startRegisterCamera()">Open Camera 📸</button>
+      <video id="video" autoplay muted style="display:none;"></video>
+
+      <p id="status"></p>
+
+      <button class="action-btn" onclick="captureFace()">Capture Face ✅</button>
+
+      <div class="step-actions">
+        <button class="action-btn" onclick="setRegisterStep(1)">⬅ Back</button>
+        <button class="action-btn" onclick="nextRegisterStep(3)">Next ➜</button>
+      </div>
+
+      <p id="error"></p>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="regStep3" class="reg-step">
+      <input id="pass" type="password" placeholder="Password">
+      <input id="confirm" type="password" placeholder="Confirm Password">
+
+      <div class="show-pass">
+        <input type="checkbox" onclick="togglePass()" style="width:auto;"> Show Password
+      </div>
+
+      <div class="step-actions">
+        <button class="action-btn" onclick="setRegisterStep(2)">⬅ Back</button>
+        <button class="action-btn" onclick="register()">Register 🚀</button>
+      </div>
+
+      <p id="error"></p>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="form-section">
+    <h2>Login 🔐</h2>
+
+    <div class="login-tabs">
+      <button id="loginTab1" class="active" onclick="showLoginTab(1)">ID Login</button>
+      <button id="loginTab2" onclick="showLoginTab(2)">Face Login</button>
+    </div>
+
+    <div id="loginInner1" class="login-inner-section active">
+      <input id="loginEmail" placeholder="Email">
+      <input id="loginPassword" type="password" placeholder="Password">
+
+      <p id="loginError"></p>
+
+      <button class="action-btn login-btn" onclick="login()">Login 🚀</button>
+
+      <p onclick="forgotPassword()" style="font-size:12px;margin-top:5px;cursor:pointer;">
+        Forgot Password?
+      </p>
+
+      <button class="action-btn google-btn" onclick="googleLogin()">
+        <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg">
+        Continue with Google
+      </button>
+    </div>
+
+    <div id="loginInner2" class="login-inner-section">
+      <button class="action-btn login-btn" onclick="startLoginCamera()">Start Face Scan 📸</button>
+      <video id="loginVideo" autoplay muted style="display:none;"></video>
+      <p id="loginStatus"></p>
+      <button class="action-btn login-btn" onclick="faceLogin()">Face Unlock 🔓</button>
+    </div>
+  </div>
+
 </div>
 
-<div id="section1" class="section active">
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-  <p id="error"></p>
-  <button onclick="login()">Login 🚀</button>
-
-  <p onclick="forgotPassword()" style="font-size:12px;margin-top:5px;cursor:pointer;">
-    Forgot Password?
-  </p>
-
-  <button class="google-btn" onclick="googleLogin()">
-    <img class="google-icon" src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg">
-    Continue with Google
-  </button>
+<div class="feature-row">
+  <div class="feature-chip">🔐 Secure Login<span>Protected user access</span></div>
+  <div class="feature-chip">📸 Face Auth<span>AI face verification</span></div>
+  <div class="feature-chip">📲 OTP Verify<span>Extra security layer</span></div>
 </div>
 
-<div id="section2" class="section">
-  <button onclick="startCamera()">Start Face Scan 📸</button>
-  <video id="video" autoplay muted style="display:none;"></video>
-  <p id="status" style="font-size:12px;"></p>
-  <button onclick="faceLogin()">Face Unlock 🔓</button>
 </div>
 
-<p><a href="register.html" style="color:white;">Register</a></p>
-
+<div id="otpPopup" class="otp-popup-overlay">
+  <div class="otp-popup-box">
+    <h3>OTP Verification 🔐</h3>
+    <p>Your demo OTP is</p>
+    <div id="otpPopupCode" class="otp-code">0000</div>
+    <button onclick="closeOtpPopup()">OK</button>
+  </div>
 </div>
 
 <script>
+let modelsLoaded=false;
+let generatedOTP="";
+let videoStream=null;
+let loginVideoStream=null;
+let capturedFaceDescriptors=null;
+let faceFailCount=Number(localStorage.getItem("faceFailCount")) || 0;
 
-// 🔥 LOGIN HISTORY
-function saveLoginHistory(type){
- let logs = JSON.parse(localStorage.getItem("loginLogs")) || [];
-
- logs.push({
-   email: localStorage.getItem("email"),
-   type: type,
-   time: new Date().toLocaleString()
- });
-
- localStorage.setItem("loginLogs", JSON.stringify(logs));
+function showOtpPopup(code){
+ document.getElementById("otpPopupCode").innerText=code;
+ document.getElementById("otpPopup").style.display="flex";
 }
 
-// 🔥 ATTENDANCE WITH DURATION
-function saveAttendance(type,email){
- let logs = JSON.parse(localStorage.getItem("attendanceLogs")) || [];
-
- logs.push({
-   name: localStorage.getItem("name"),
-   email: email,
-   type: type,
-   date: new Date().toLocaleDateString(),
-   time: new Date().toLocaleTimeString(),
-   duration: "Active" // initial
- });
-
- localStorage.setItem("attendanceLogs", JSON.stringify(logs));
+function closeOtpPopup(){
+ document.getElementById("otpPopup").style.display="none";
 }
-
-// 🔥 SAVE LOGIN START TIME
-function startSession(){
- localStorage.setItem("loginStartTime", Date.now());
-}
-
-// TAB
-function showTab(tab){
- document.getElementById("section1").classList.remove("active");
- document.getElementById("section2").classList.remove("active");
-
- document.getElementById("tab1").classList.remove("active");
- document.getElementById("tab2").classList.remove("active");
-
- document.getElementById("section"+tab).classList.add("active");
- document.getElementById("tab"+tab).classList.add("active");
-}
-
-let video = document.getElementById("video");
-let videoStream = null;
 
 async function loadModels(){
  await faceapi.nets.tinyFaceDetector.loadFromUri('models');
  await faceapi.nets.faceLandmark68Net.loadFromUri('models');
  await faceapi.nets.faceRecognitionNet.loadFromUri('models');
+ modelsLoaded=true;
 }
-window.onload = loadModels;
+window.onload=loadModels;
 
-// 🔥 LOGIN
-function login(){
- let email=document.getElementById("email").value;
- let pass=document.getElementById("password").value;
+function setRegisterStep(step){
+ document.querySelectorAll(".reg-step").forEach(s=>s.classList.remove("active"));
+ document.querySelectorAll(".step-dot").forEach(d=>d.classList.remove("active"));
 
- if(email===localStorage.getItem("email") && pass===localStorage.getItem("pass")){
-  startSession(); // ✅ NEW
-  saveLoginHistory("ID Login");
-  saveAttendance("ID", email);
-  stopCamera();
-  window.location.href="welcome.html";
+ document.getElementById("regStep"+step).classList.add("active");
+ document.getElementById("regDot"+step).classList.add("active");
+}
+
+function nextRegisterStep(step){
+ if(step===2 && !checkRegisterStep(5)) return;
+ if(step===3 && !checkRegisterStep(7)) return;
+
+ setRegisterStep(step);
+}
+
+function showMainTab(tab){
+ document.getElementById("registerSection").classList.remove("active");
+ document.getElementById("loginSection").classList.remove("active");
+ document.getElementById("mainTabRegister").classList.remove("active");
+ document.getElementById("mainTabLogin").classList.remove("active");
+
+ document.getElementById("globalBackBtn").style.display="block";
+ document.querySelector(".main-tabs").style.display="none";
+
+ if(tab==="register"){
+  document.getElementById("registerSection").classList.add("active");
+  document.getElementById("mainTabRegister").classList.add("active");
+  setRegisterStep(1);
  }else{
-  document.getElementById("error").innerText="Wrong credentials ❌";
+  document.getElementById("loginSection").classList.add("active");
+  document.getElementById("mainTabLogin").classList.add("active");
  }
 }
 
-async function startCamera(){
+ function goBack(){
+ document.getElementById("registerSection").classList.remove("active");
+ document.getElementById("loginSection").classList.remove("active");
+ document.getElementById("mainTabRegister").classList.remove("active");
+ document.getElementById("mainTabLogin").classList.remove("active");
+ document.getElementById("globalBackBtn").style.display="none";
+ document.querySelector(".main-tabs").style.display="flex";
+
+ // 🔥 FORM RESET (ye naya hai)
+ document.getElementById("name").value="";
+ document.getElementById("email").value="";
+ document.getElementById("phone").value="";
+ document.getElementById("otp").value="";
+ document.getElementById("pass").value="";
+ document.getElementById("confirm").value="";
+
+ document.getElementById("error").innerText="";
+ document.getElementById("status").innerText="";
+
+ generatedOTP="";
+ capturedFaceDescriptors=null;
+ setRegisterStep(1);
+}
+function showLoginTab(tab){
+ document.getElementById("loginInner1").classList.remove("active");
+ document.getElementById("loginInner2").classList.remove("active");
+ document.getElementById("loginTab1").classList.remove("active");
+ document.getElementById("loginTab2").classList.remove("active");
+
+ document.getElementById("loginInner"+tab).classList.add("active");
+ document.getElementById("loginTab"+tab).classList.add("active");
+
+ document.getElementById("loginError").innerText="";
+ document.getElementById("loginStatus").innerText="";
+}
+
+function showRegError(msg){
+ document.getElementById("error").innerText = msg;
+}
+
+function validEmail(email){
+ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function checkRegisterStep(step){
+ let name=document.getElementById("name").value.trim();
+ let email=document.getElementById("email").value.trim();
+ let phone=document.getElementById("phone").value.replace(/\D/g,'');
+ let otp=document.getElementById("otp").value.trim();
+ let pass=document.getElementById("pass").value;
+ let confirm=document.getElementById("confirm").value;
+
+ if(step>=1 && name===""){
+  showRegError("");
+  document.getElementById("name").focus();
+  return false;
+ }
+
+ if(step>=2 && !validEmail(email)){
+  showRegError("Pehle valid Email enter karo ❌");
+  document.getElementById("email").focus();
+  return false;
+ }
+
+ if(step>=3 && phone.length!==10){
+  showRegError("Pehle valid Mobile number enter karo ❌");
+  document.getElementById("phone").focus();
+  return false;
+ }
+
+ if(step>=4 && !generatedOTP){
+  showRegError("Pehle OTP generate karo ❌");
+  return false;
+ }
+
+ if(step>=5 && otp!=generatedOTP){
+  showRegError("Pehle correct OTP enter karo ❌");
+  document.getElementById("otp").focus();
+  return false;
+ }
+
+ if(step>=6 && !videoStream){
+  showRegError("Pehle camera open karo 📸");
+  return false;
+ }
+
+ if(step>=7 && !capturedFaceDescriptors){
+  showRegError("Pehle face capture karo 📸");
+  return false;
+ }
+
+ if(step>=8 && pass===""){
+  showRegError("Pehle password enter karo ❌");
+  document.getElementById("pass").focus();
+  return false;
+ }
+
+ if(step>=9 && pass!==confirm){
+  showRegError("Password mismatch ❌");
+  document.getElementById("confirm").focus();
+  return false;
+ }
+
+ showRegError("");
+ return true;
+}
+
+function setupRegisterStepGuards(){
+ const guards=[
+  {id:"email",step:1},
+  {id:"phone",step:2},
+  {id:"otp",step:4},
+  {id:"pass",step:7},
+  {id:"confirm",step:8}
+ ];
+
+ guards.forEach(g=>{
+  const el=document.getElementById(g.id);
+  if(!el) return;
+  el.addEventListener("focus",()=>checkRegisterStep(g.step));
+  el.addEventListener("input",()=>checkRegisterStep(g.step));
+ });
+}
+
+window.addEventListener("DOMContentLoaded",setupRegisterStepGuards);
+function sendOTP(){
+
+ if(!checkRegisterStep(3)) return;
+
+ generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
+ alert("Demo OTP: " + generatedOTP);
+
+ document.getElementById("error").innerText =
+ "Demo OTP generated ✅";
+
+}
+function startRegisterCamera(){
+ if(!checkRegisterStep(5)) return;
+ let video=document.getElementById("video");
  video.style.display="block";
- videoStream = await navigator.mediaDevices.getUserMedia({video:true});
- video.srcObject = videoStream;
+
+ navigator.mediaDevices.getUserMedia({video:true})
+ .then(async stream=>{
+   video.srcObject=stream;
+   videoStream=stream;
+   await video.play();
+ })
+ .catch(()=>alert("Camera permission denied ❌"));
+}
+
+async function startLoginCamera(){
+ let video=document.getElementById("loginVideo");
+ document.getElementById("loginStatus").innerText="Camera starting... 📸";
+
+ video.style.display="block";
+ loginVideoStream = await navigator.mediaDevices.getUserMedia({video:true});
+ video.srcObject = loginVideoStream;
+ await video.play();
+
+ document.getElementById("loginStatus").innerText="Camera Started ✅";
 }
 
 function stopCamera(){
  if(videoStream){
   videoStream.getTracks().forEach(track=>track.stop());
+  videoStream=null;
+ }
+ if(loginVideoStream){
+  loginVideoStream.getTracks().forEach(track=>track.stop());
+  loginVideoStream=null;
  }
 }
 
-// 🔥 FACE LOGIN (UNCHANGED LOGIC + ADD)
-async function faceLogin(){
+function togglePass(){
+ let p=document.getElementById("pass");
+ let c=document.getElementById("confirm");
+ p.type=p.type==="password"?"text":"password";
+ c.type=c.type==="password"?"text":"password";
+}
 
- let status = document.getElementById("status");
+async function captureFace(){
+
+ if(!checkRegisterStep(6)) return;
+
+ let status=document.getElementById("status");
+ let video=document.getElementById("video");
+
+ let users = JSON.parse(localStorage.getItem("users")) || [];
+ let email = document.getElementById("email").value.trim();
+ let existingIndex = users.findIndex(u => u.email === email);
+
+ status.innerText = "Scanning face... 🔍";
+
+await new Promise(r => setTimeout(r, 2500));
+
+if(existingIndex >= 0 && users[existingIndex].face && users[existingIndex].face.length > 0){
+  status.innerText = "This account already has a registered face ❌";
+  return;
+}
+
+ if(!modelsLoaded){
+   alert("Models loading ⏳");
+   return;
+ }
 
  if(!videoStream){
+   alert("Start camera first 📸");
+   return;
+ }
+
+ status.innerText="Capturing face samples... 🎯";
+
+ let descriptors=[];
+
+ for(let i=0;i<5;i++){
+
+   const detections=await faceapi.detectAllFaces(
+     video,
+     new faceapi.TinyFaceDetectorOptions({inputSize:128})
+   );
+
+   if(detections.length!==1){
+     status.innerText="Only 1 person allowed ❌";
+     return;
+   }
+
+   const detection=await faceapi
+     .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions())
+     .withFaceLandmarks()
+     .withFaceDescriptor();
+
+   if(!detection){
+     status.innerText="Face not clear ❌";
+     return;
+   }
+
+   descriptors.push(Array.from(detection.descriptor));
+   await new Promise(r=>setTimeout(r,250));
+ }
+
+ capturedFaceDescriptors=descriptors;
+
+ status.innerText="Face Registered ✅";
+ alert("Face Registered Successfully ✅");
+}
+
+function register(){
+ if(!checkRegisterStep(9)) return;
+
+ let name=document.getElementById("name").value;
+ let email=document.getElementById("email").value;
+ let phone=document.getElementById("phone").value.replace(/\D/g,'');
+ let pass=document.getElementById("pass").value;
+ let confirm=document.getElementById("confirm").value;
+ let otp=document.getElementById("otp").value;
+ let error=document.getElementById("error");
+
+ if(!generatedOTP){error.innerText="Generate OTP";return;}
+ if(otp!=generatedOTP){error.innerText="Wrong OTP";return;}
+ if(pass!==confirm){error.innerText="Password mismatch";return;}
+
+ if(!capturedFaceDescriptors){
+   error.innerText="Capture face first 📸";
+   return;
+ }
+
+ let users=JSON.parse(localStorage.getItem("users")) || [];
+ let existingIndex=users.findIndex(u=>u.email===email);
+
+ let userData={
+   name:name,
+   email:email,
+   phone:phone,
+   password:pass,
+   face:capturedFaceDescriptors,
+   date:new Date().toLocaleString()
+ };
+
+ if(existingIndex>=0){
+   error.innerText="This account already exists ❌";
+   return;
+ }else{
+   users.push(userData);
+ }
+
+ localStorage.setItem("users", JSON.stringify(users));
+ fetch("http://localhost:5001/api/auth/register",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    name:name,
+    email:email,
+    phone:phone,
+    password:pass,
+    faceDescriptors:capturedFaceDescriptors
+  })
+})
+.then(res => res.json())
+.then(data => {
+  console.log("Backend Register:", data);
+})
+.catch(err => {
+  console.log("Backend Error:", err);
+});
+
+ localStorage.setItem("name",name);
+ localStorage.setItem("pass",pass);
+ localStorage.setItem("email",email);
+ localStorage.setItem("phone",phone);
+ localStorage.setItem("faceDescriptors", JSON.stringify(capturedFaceDescriptors));
+
+ alert("Registered Successfully ✅");
+
+ document.getElementById("loginEmail").value=email;
+ document.getElementById("loginPassword").value="";
+ document.getElementById("loginError").innerText="";
+ showMainTab("login");
+}
+
+function saveLoginHistory(type){
+ let logs=JSON.parse(localStorage.getItem("loginLogs")) || [];
+
+ logs.push({
+   email:localStorage.getItem("email"),
+   type:type,
+   time:new Date().toLocaleString()
+ });
+
+ localStorage.setItem("loginLogs", JSON.stringify(logs));
+}
+const OFFICE_LAT = 26.850866566880896;
+const OFFICE_LON = 75.78859919938823;
+const OFFICE_RADIUS = 100;
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371e3;
+
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) *
+    Math.cos(φ2) *
+    Math.sin(Δλ / 2) *
+    Math.sin(Δλ / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function checkOfficeLocation(type,email){
+
+  navigator.geolocation.getCurrentPosition(
+
+    function(position){
+
+      let userLat = position.coords.latitude;
+      let userLon = position.coords.longitude;
+
+      let distance = getDistance(
+        OFFICE_LAT,
+        OFFICE_LON,
+        userLat,
+        userLon
+      );
+      alert("Distance: " + Math.round(distance) + " meters");
+if(distance <= OFFICE_RADIUS){
+    saveAttendance(type,email);
+    stopCamera();
+    window.location.href = "welcome.html";
+}else{
+    alert("Outside Office Radius ❌");
+}
+    },
+
+    function(){
+      alert("Location Permission Denied ❌");
+    }
+
+  );
+}
+function saveAttendance(type,email){
+ let logs=JSON.parse(localStorage.getItem("attendanceLogs")) || [];
+
+ logs.push({
+   name:localStorage.getItem("name"),
+   email:email,
+   type:type,
+   date:new Date().toLocaleDateString(),
+   time:new Date().toLocaleTimeString(),
+   duration:"Active"
+ });
+
+ localStorage.setItem("attendanceLogs", JSON.stringify(logs));
+fetch("http://localhost:5001/api/auth/attendance-log",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    name:localStorage.getItem("name"),
+    email:email,
+    type:type,
+    date:new Date().toLocaleDateString(),
+    inTime:new Date().toLocaleTimeString(),
+    out:new Date().toLocaleTimeString(),
+    duration:"Active"
+  })
+})
+.then(res=>res.json())
+.then(data=>{
+  console.log("Attendance Saved:",data);
+})
+.catch(err=>{
+  
+  console.log("Attendance Error:",err);
+});
+} 
+function startSession(){
+ localStorage.setItem("loginStartTime", Date.now());
+}
+function saveDutyData(type){
+
+  let email = localStorage.getItem("email");
+  let name = localStorage.getItem("name");
+
+  if(!email) return;
+
+  let logs =
+  JSON.parse(localStorage.getItem("dutyTimeLogs")) || [];
+
+  let now = new Date();
+
+  let today =
+  now.toLocaleDateString("en-GB");
+
+  let currentTime = now.getTime();
+
+  // HAR LOGIN = NEW ROW
+if(type === "login"){
+let lastRow = [...logs].reverse().find(l =>
+  l.email === email &&
+  l.lastLogout &&
+  !l.outsideDone
+);
+
+if(lastRow){
+
+  let outside = Math.floor((currentTime - lastRow.lastLogout) / 60000);
+
+  if(outside < 0) outside = 0;
+
+  lastRow.outsideMinutes = outside;
+
+  let outH = Math.floor(outside / 60);
+  let outM = outside % 60;
+
+  lastRow.outsideTime =
+`${outH}h ${outM}m (Login: ${now.toLocaleTimeString("en-US")})`;
+
+  lastRow.outsideDone = true;
+}
+  let userLog = logs[logs.length - 1];
+
+  if(userLog && userLog.lastLogout){
+
+    let outside =
+    Math.floor(
+    (currentTime - userLog.lastLogout)
+    / 60000);
+
+    userLog.outsideMinutes = outside;
+
+    let outH =
+    Math.floor(outside / 60);
+
+    let outM =
+    outside % 60;
+userLog.outsideTime =
+`${outH}h ${outM}m (Login: ${now.toLocaleTimeString("en-US")})`;
+
+  }
+
+  let newLog = {
+    name:name,
+    email:email,
+    date:today,
+    insideMinutes:0,
+    outsideMinutes:0,
+    sessions:1,
+    lastLogin:currentTime,
+    lastLogout:null,
+    insideTime: now.toLocaleTimeString("en-US"),
+    outsideTime:userLog ? userLog.outsideTime : "0h 0m",
+    remaining:"9h 0m"
+  };
+
+  logs.push(newLog);
+
+}
+
+  // LAST LOGIN ROW PAR LOGOUT UPDATE
+  if(type === "logout"){
+
+    let userLog = [...logs].reverse().find(l =>
+      l.email === email &&
+      l.date === today &&
+      l.lastLogout === null
+    );
+
+    if(userLog){
+
+      let inside =
+      Math.floor(
+      (currentTime - userLog.lastLogin)
+      / 60000);
+
+      userLog.insideMinutes = inside;
+
+      userLog.lastLogout = currentTime;
+      userLog.logoutTime =
+now.toLocaleTimeString("en-US");
+userLog.logoutTime =
+  now.toLocaleTimeString("en-US");
+      let insideH =
+      Math.floor(inside / 60);
+
+      let insideM =
+      inside % 60;
+
+      userLog.insideTime =
+      `${insideH}h ${insideM}m`;
+
+      let remain =
+      540 - inside;
+
+      if(remain < 0) remain = 0;
+
+      let remH = Math.floor(remain / 60);
+      let remM = remain % 60;
+
+      userLog.remaining =
+      `${remH}h ${remM}m`;
+
+    }
+
+  }
+
+  localStorage.setItem(
+    "dutyTimeLogs",                                      
+    JSON.stringify(logs)
+  );
+  let lastDutyLog = logs[logs.length - 1];
+
+fetch("http://localhost:5001/api/auth/duty-log",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify(lastDutyLog)
+})
+.then(res=>res.json())
+.then(data=>{
+  console.log("Duty Saved:",data);
+})
+.catch(err=>{
+  console.log("Duty Error:",err);
+});
+
+}
+async function login(){
+ document.getElementById("loginError").innerText="";
+
+ let email=document.getElementById("loginEmail").value.trim();
+ let pass=document.getElementById("loginPassword").value;
+
+ try{
+   let res = await fetch("http://localhost:5001/api/auth/login",{
+     method:"POST",
+     headers:{
+       "Content-Type":"application/json"
+     },
+     body:JSON.stringify({
+       email:email,
+       password:pass
+     })
+   });
+
+   let data = await res.json();
+
+   console.log("Backend Login:", data);
+console.log("Login User Data:", data.user);
+   if(!data.success){
+     document.getElementById("loginError").innerText =
+     data.message || "Wrong credentials ❌";
+     return;
+   }
+
+   let user = data.user;
+
+   localStorage.setItem("name", user.name);
+   localStorage.setItem("email", user.email);
+   localStorage.setItem("pass", pass);
+   localStorage.setItem("phone", user.phone || "");
+   if(user.faceDescriptors){
+     localStorage.setItem(
+       "faceDescriptors",
+       JSON.stringify(user.faceDescriptors)
+     );
+   }
+
+   startSession();
+   saveDutyData("login");
+   saveLoginHistory("ID Login");
+   await fetch("http://localhost:5001/api/auth/login-log",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    email:user.email,
+    type:"ID Login",
+    duration:"0 min"
+  })
+});
+   checkOfficeLocation("ID", email);
+ }catch(err){
+   console.log("Backend Login Error:", err);
+   document.getElementById("loginError").innerText =
+   "Backend not connected ❌";
+ }
+}
+
+async function faceLogin(){
+ let status=document.getElementById("loginStatus");
+ let video=document.getElementById("loginVideo");
+
+ status.innerText="";
+
+ let lockUntil=Number(localStorage.getItem("faceLockUntil")) || 0;
+ if(lockUntil && Date.now()<lockUntil){
+  let sec=Math.ceil((lockUntil-Date.now())/1000);
+  status.innerText="Too many attempts ⛔ Wait "+sec+" sec";
+  return;
+ }
+
+ if(!modelsLoaded){
+  status.innerText="Models loading ⏳";
+  return;
+ }
+
+ if(!loginVideoStream){
   status.innerText="Start camera first 📸";
   return;
  }
 
- let saved = localStorage.getItem("faceDescriptors");
- if(!saved){
+ let users=JSON.parse(localStorage.getItem("users")) || [];
+ let oldSaved=localStorage.getItem("faceDescriptors");
+
+ if(users.length===0 && oldSaved){
+  users.push({
+    name:localStorage.getItem("name") || "User",
+    email:localStorage.getItem("email") || "",
+    password:localStorage.getItem("pass") || "",
+    face:JSON.parse(oldSaved)
+  });
+ }
+
+ let usersWithFace=users.filter(u=>u.face && Array.isArray(u.face) && u.face.length>0);
+
+ if(usersWithFace.length===0){
   status.innerText="Register face first ❌";
   return;
  }
 
- const storedDescriptors = JSON.parse(saved);
-
  status.innerText="Checking environment...";
 
- let validFrames = 0;
+ let validFrames=0; 
+ let movementFrames=0;
+let lastX=null;
 
  for(let i=0;i<6;i++){
 
-   const faces = await faceapi.detectAllFaces(
+   const faces=await faceapi.detectAllFaces(
      video,
      new faceapi.TinyFaceDetectorOptions({inputSize:160})
    );
 
-   if(faces.length === 0){
+   if(faces.length===0){
      status.innerText="No face detected ❌";
      return;
    }
 
-   if(faces.length > 1){
+   if(faces.length>1){
      status.innerText="Multiple faces detected ❌";
-     return;
+     return;             
    }
 
-   let face = faces[0].box;
+   let face=faces[0].box;
 
-   if(face.width < 130 || face.height < 130){
+   if(face.width<130 || face.height<130){
      status.innerText="Come closer 📸";
      return;
    }
 
-   let centerX = face.x + face.width/2;
-   let videoCenter = video.videoWidth / 2;
+   let centerX=face.x+face.width/2;
+   let videoCenter=video.videoWidth/2;
 
-   if(Math.abs(centerX - videoCenter) > 70){
+   if(Math.abs(centerX-videoCenter)>70){
      status.innerText="Center your face 🎯";
      return;
    }
+// ✅ FACE MOVEMENT CHECK
+if(lastX!==null){
 
+ let move=Math.abs(centerX-lastX);
+
+ if(move>4){
+   movementFrames++;
+ }
+
+}
+
+lastX=centerX;
    validFrames++;
-
    await new Promise(r=>setTimeout(r,180));
  }
 
- if(validFrames < 5){
+ if(validFrames<5){
    status.innerText="Hold still ❌";
    return;
- }
+}
 
- status.innerText="Verifying face...";
+// ✅ FAKE PHOTO DETECTION
+if(movementFrames<1){
+   status.innerText="Fake / Static face detected ❌";
+   return;
+}
 
- const detection = await faceapi
+status.innerText="Verifying face...";
+
+ const detection=await faceapi
    .detectSingleFace(video,new faceapi.TinyFaceDetectorOptions({inputSize:160}))
    .withFaceLandmarks()
    .withFaceDescriptor();
@@ -298,40 +1473,67 @@ async function faceLogin(){
   return;
  }
 
- let match = false;
+ let matchedUser=null;
+ let bestDistance=999;
 
- for(let i=0;i<storedDescriptors.length;i++){
+ for(let user of usersWithFace.reverse()){
+   for(let i=0;i<user.face.length;i++){
+     const stored=new Float32Array(user.face[i]);
 
-   const stored = new Float32Array(storedDescriptors[i]);
+     const distance=faceapi.euclideanDistance(
+       stored,
+       detection.descriptor
+     );
 
-   const distance = faceapi.euclideanDistance(
-     stored,
-     detection.descriptor
-   );
+     if(distance<bestDistance){
+       bestDistance=distance;
+     }
 
-   if(distance < 0.55){
-     match = true;
-     break;
+     if(distance<0.38){
+     console.log("Matched User:", user.name);
+       matchedUser=user;
+       break;
+     }
    }
+
+   if(matchedUser) break;
  }
 
- if(match){
-  startSession(); // ✅ NEW
+ if(matchedUser){
+  faceFailCount=0;
+  localStorage.setItem("faceFailCount", "0");
+  localStorage.removeItem("faceLockUntil");
+
+  localStorage.setItem("name", matchedUser.name);
+  localStorage.setItem("email", matchedUser.email);
+  localStorage.setItem("pass", matchedUser.password || "");
+  localStorage.setItem("faceDescriptors", JSON.stringify(matchedUser.face));
+
+  startSession();
+  saveDutyData("login");
   saveLoginHistory("Face Login");
-  saveAttendance("FACE", localStorage.getItem("email"));
-  status.innerText="Face Match ✅";
-  stopCamera();
-  setTimeout(()=>window.location.href="welcome.html",200);
+  status.innerText = "Face Match ✅";
+checkOfficeLocation("FACE", matchedUser.email);
  }else{
+  faceFailCount++;
+  localStorage.setItem("faceFailCount", String(faceFailCount));
+
+  if(faceFailCount>=3){
+    let lockTime=Date.now()+30000;
+    localStorage.setItem("faceLockUntil", String(lockTime));
+    faceFailCount=0;
+    localStorage.setItem("faceFailCount", "0");
+    status.innerText="Too many wrong attempts ⛔ Locked for 30 sec";
+    return;
+  }
+
   status.innerText="Face Not Match ❌";
  }
 }
 
-// GOOGLE LOGIN
 function googleLogin(){
- let email = prompt("Enter Gmail");
-
- let pattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+ let email=prompt("Enter Gmail");
+ let pattern=/^[a-zA-Z0-9._%+-]+@gmail\.com$/;
 
  if(!pattern.test(email)){
   alert("Invalid Gmail ❌");
@@ -340,7 +1542,8 @@ function googleLogin(){
 
  localStorage.setItem("email", email);
 
- startSession(); // ✅ NEW
+ startSession();
+ saveDutyData("login");
  saveLoginHistory("Google Login");
  saveAttendance("GOOGLE", email);
 
@@ -348,38 +1551,129 @@ function googleLogin(){
  window.location.href="welcome.html";
 }
 
-// बाकी SAME
 function forgotPassword(){
- let phone = prompt("Enter registered mobile");
+ let users=JSON.parse(localStorage.getItem("users")) || [];
 
- if(!phone || phone.replace(/\D/g,'').length !== 10){
-  alert("Invalid number ❌");
+ let input=prompt("Enter Email or Mobile");
+
+ if(!input){
+  alert("Enter Email or Mobile ❌");
   return;
  }
 
- let otp = Math.floor(1000 + Math.random()*9000);
- alert("OTP: " + otp);
+ input=input.trim();
 
- let userOtp = prompt("Enter OTP");
+ let userIndex=-1;
 
- if(userOtp != otp){
+ if(input.includes("@")){
+  userIndex=users.findIndex(u=>u.email===input);
+ }else{
+  let phone=input.replace(/\D/g,'');
+  userIndex=users.findIndex(u=>u.phone===phone);
+ }
+
+ if(userIndex<0){
+  alert("User not found ❌");
+  return;
+ }
+
+ let otp=Math.floor(1000+Math.random()*9000);
+ alert("OTP: "+otp);
+
+ let userOtp=prompt("Enter OTP");
+
+ if(userOtp!=otp){
   alert("Wrong OTP ❌");
   return;
  }
 
- let newPass = prompt("New Password");
- let confirmPass = prompt("Confirm Password");
+ let newPass=prompt("New Password");
+ let confirmPass=prompt("Confirm Password");
 
- if(newPass !== confirmPass){
+ if(!newPass){
+  alert("Password cannot be empty ❌");
+  return;
+ }
+
+ if(newPass!==confirmPass){
   alert("Password mismatch ❌");
   return;
  }
 
- localStorage.setItem("pass", newPass);
+ users[userIndex].password=newPass;
+ localStorage.setItem("users", JSON.stringify(users));
+
+ let resetLogs=JSON.parse(localStorage.getItem("resetLogs")) || [];
+ resetLogs.push({
+  name:users[userIndex].name,
+  email:users[userIndex].email,
+  phone:users[userIndex].phone || "",
+  time:new Date().toLocaleString(),
+  method:input.includes("@") ? "Email" : "Mobile"
+ });
+ fetch("http://localhost:5001/api/auth/reset-log",{
+  method:"POST",
+  headers:{
+    "Content-Type":"application/json"
+  },
+  body:JSON.stringify({
+    name:users[userIndex].name,
+    email:users[userIndex].email,
+    phone:users[userIndex].phone || "",
+    time:new Date().toLocaleString(),
+    method:input.includes("@") ? "Email" : "Mobile"
+  })
+});
+ localStorage.setItem("resetLogs", JSON.stringify(resetLogs));
+
+ if(localStorage.getItem("email")===users[userIndex].email){
+  localStorage.setItem("pass", newPass);
+ }
+
  alert("Password Reset Successful ✅");
 }
+function exportData(){
+  let backup = {
+    users: JSON.parse(localStorage.getItem("users")) || [],
+    loginLogs: JSON.parse(localStorage.getItem("loginLogs")) || [],
+    attendanceLogs: JSON.parse(localStorage.getItem("attendanceLogs")) || [],
+    resetLogs: JSON.parse(localStorage.getItem("resetLogs")) || []
+  };
 
+  let file = new Blob([JSON.stringify(backup, null, 2)], {
+    type: "application/json"
+  });
+
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = "smart-auth-backup.json";
+  a.click();
+}
+
+function importData(){
+  document.getElementById("restoreFile").click();
+}
+
+function restoreData(event){
+  let file = event.target.files[0];
+  if(!file) return;
+
+  let reader = new FileReader();
+
+  reader.onload = function(e){
+    let data = JSON.parse(e.target.result);
+
+    localStorage.setItem("users", JSON.stringify(data.users || []));
+    localStorage.setItem("loginLogs", JSON.stringify(data.loginLogs || []));
+    localStorage.setItem("attendanceLogs", JSON.stringify(data.attendanceLogs || []));
+    localStorage.setItem("resetLogs", JSON.stringify(data.resetLogs || []));
+
+    alert("Data restored successfully ✅");
+  };
+
+  reader.readAsText(file);
+}
 </script>
-
+<input type="file" id="restoreFile" style="display:none" onchange="restoreData(event)">
 </body>
 </html>
